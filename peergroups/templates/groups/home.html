@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Peer Groups — find your people{% endblock %}
+
+{% block content %}
+<section class="mb-10 max-w-2xl">
+    <p class="font-mono text-xs uppercase mb-3" style="color: var(--forest)">Campus meetups, made easy</p>
+    <h1 class="font-display text-4xl sm:text-5xl font-semibold leading-tight mb-4" style="color: var(--ink)">
+        Find your people this week.
+    </h1>
+    <p class="text-base" style="color: var(--ink-soft)">
+        Pick an interest, see who's meeting up on campus, and show up. Or start your own —
+        it takes less than a minute.
+    </p>
+</section>
+
+<form method="get" class="mb-6">
+    <div class="flex flex-wrap gap-3 mb-4">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search by name, topic, or place..."
+               class="flex-1 min-w-[240px]">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <button type="submit" name="interest" value=""
+                class="btn btn-sm {% if not selected_interest %}btn-primary{% else %}btn-outline{% endif %}">All</button>
+        {% for value, label in interests %}
+            <button type="submit" name="interest" value="{{ value }}"
+                    class="btn btn-sm {% if value == selected_interest %}btn-primary{% else %}btn-outline{% endif %}">{{ label }}</button>
+        {% endfor %}
+    </div>
+</form>
+
+{% if groups %}
+    <div class="grid sm:grid-cols-2 gap-5 pt-2">
+        {% for group in groups %}
+            <a href="{% url 'group_detail' group.pk %}" class="card ticket relative hover:shadow-md transition-shadow">
+                <div class="ticket-main">
+                    <div class="flex flex-wrap gap-1.5 mb-2.5">
+                        <span class="badge badge-forest">{{ group.get_interest_display }}</span>
+                        {% if group.is_private %}<span class="badge badge-clay">Private</span>{% endif %}
+                    </div>
+                    <h2 class="font-display text-lg font-semibold leading-snug mb-1.5" style="color: var(--ink)">{{ group.name }}</h2>
+                    <p class="text-sm mb-3 line-clamp-2" style="color: var(--ink-soft)">{{ group.description }}</p>
+                    <div class="flex items-center gap-1.5 text-sm" style="color: var(--ink-soft)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                        <span class="truncate">{{ group.location }}</span>
+                        <span class="mx-1">·</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                        <span>{{ group.member_count }} joined</span>
+                    </div>
+                </div>
+                <div class="ticket-stub">
+                    <span class="day">{{ group.meeting_time|date:"d" }}</span>
+                    <span class="month">{{ group.meeting_time|date:"M"|upper }}</span>
+                    <span class="time">{{ group.meeting_time|date:"g:i A" }}</span>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card text-center py-16 px-6">
+        <p class="font-display text-xl mb-1" style="color: var(--ink)">No groups match yet.</p>
+        <p class="text-sm mb-5" style="color: var(--ink-soft)">Be the first to start one for this search.</p>
+        <a href="{% url 'create_group' %}" class="btn btn-primary">Start a group</a>
+    </div>
+{% endif %}
+{% endblock %}

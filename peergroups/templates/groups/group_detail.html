@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}{{ group.name }} — Peer Groups{% endblock %}
+
+{% block content %}
+<div class="card ticket relative mb-8">
+    <div class="ticket-main">
+        <div class="flex flex-wrap gap-1.5 mb-3">
+            <span class="badge badge-forest">{{ group.get_interest_display }}</span>
+            <span class="badge {% if group.is_private %}badge-clay{% else %}badge-gold{% endif %}">
+                {% if group.is_private %}Private{% else %}Public{% endif %}
+            </span>
+        </div>
+        <h1 class="font-display text-3xl font-semibold mb-2" style="color: var(--ink)">{{ group.name }}</h1>
+        <p class="mb-5 whitespace-pre-line" style="color: var(--ink-soft)">{{ group.description }}</p>
+
+        <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm mb-5" style="color: var(--ink-soft)">
+            <span class="flex items-center gap-1.5">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                {{ group.location }}
+            </span>
+            <span class="flex items-center gap-1.5">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                {{ group.member_count }} member{{ group.member_count|pluralize }} · started by {{ group.creator.username }}
+            </span>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+            {% if is_creator %}
+                <a href="{% url 'edit_group' group.pk %}" class="btn btn-outline">Edit group</a>
+            {% elif user.is_authenticated %}
+                {% if is_member %}
+                    <form method="post" action="{% url 'leave_group' group.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger-outline">Leave group</button>
+                    </form>
+                {% elif is_pending %}
+                    <span class="btn btn-outline" style="cursor: default; opacity: 0.75">Request pending</span>
+                {% else %}
+                    <form method="post" action="{% url 'join_group' group.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">
+                            {% if group.is_private %}Request to join{% else %}Join group{% endif %}
+                        </button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">Log in to join</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="ticket-stub">
+        <span class="day">{{ group.meeting_time|date:"d" }}</span>
+        <span class="month">{{ group.meeting_time|date:"M"|upper }}</span>
+        <span class="time">{{ group.meeting_time|date:"g:i A" }}</span>
+    </div>
+</div>
+
+{% if is_creator and group.is_private and pending_requests %}
+<div class="card p-6 mb-8">
+    <h2 class="font-display text-xl font-semibold mb-3" style="color: var(--ink)">Join requests</h2>
+    <div class="space-y-2">
+        {% for req in pending_requests %}
+            <div class="flex items-center justify-between rounded-lg px-3 py-2" style="background: var(--mist-soft)">
+                <span class="text-sm font-medium">{{ req.user.username }}</span>
+                <div class="flex gap-2">
+                    <form method="post" action="{% url 'respond_to_request' group.pk req.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="approve" class="btn btn-primary btn-sm">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'respond_to_request' group.pk req.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="reject" class="btn btn-danger-outline btn-sm">Decline</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if is_member %}
+<div class="grid md:grid-cols-2 gap-6">
+    <!-- Comments -->
+    <section class="card p-5">
+        <h2 class="font-display text-xl font-semibold mb-3" style="color: var(--ink)">Chat before you meet</h2>
+        <div class="space-y-2.5 mb-4 max-h-96 overflow-y-auto pr-1">
+            {% for comment in comments %}
+                <div class="rounded-lg px-3 py-2 text-sm" style="background: var(--mist-soft)">
+                    <span class="font-semibold">{{ comment.author.username }}</span>
+                    <span class="text-xs" style="color: var(--ink-soft)">· {{ comment.created_at|date:"M j, g:i A" }}</span>
+                    <p class="mt-0.5" style="color: var(--ink)">{{ comment.text }}</p>
+                </div>
+            {% empty %}
+                <p class="text-sm" style="color: var(--ink-soft)">No messages yet — say hi.</p>
+            {% endfor %}
+        </div>
+        <form method="post" class="flex gap-2">
+            {% csrf_token %}
+            {{ comment_form.text }}
+            <button type="submit" name="post_comment" class="btn btn-primary self-start">Send</button>
+        </form>
+    </section>
+
+    <!-- Photos -->
+    <section class="card p-5">
+        <h2 class="font-display text-xl font-semibold mb-3" style="color: var(--ink)">Group photos</h2>
+        <form method="post" enctype="multipart/form-data" class="flex flex-wrap gap-2 mb-4 items-center rounded-lg p-3" style="background: var(--mist-soft)">
+            {% csrf_token %}
+            {{ photo_form.image }}
+            {{ photo_form.caption }}
+            <button type="submit" name="post_photo" class="btn btn-accent">Share photo</button>
+        </form>
+        {% if photos %}
+            <div class="grid grid-cols-2 gap-3">
+                {% for photo in photos %}
+                    <figure class="card p-2">
+                        <img src="{{ photo.image.url }}" alt="{{ photo.caption }}" class="w-full h-32 object-cover rounded-md">
+                        <figcaption class="text-xs mt-1" style="color: var(--ink-soft)">
+                            {{ photo.caption }}{% if photo.caption %} · {% endif %}{{ photo.uploader.username }}
+                        </figcaption>
+                    </figure>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-sm" style="color: var(--ink-soft)">No photos yet.</p>
+        {% endif %}
+    </section>
+</div>
+{% else %}
+<div class="card text-center py-14 px-6">
+    <p class="font-display text-lg" style="color: var(--ink)">
+        {% if group.is_private %}This is a private group — join to see the chat and photos.
+        {% else %}Join the group to see the chat and photos.{% endif %}
+    </p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Sign up — Peer Groups{% endblock %}
+
+{% block content %}
+<div class="max-w-sm mx-auto card p-7">
+    <h1 class="font-display text-2xl font-semibold mb-5" style="color: var(--ink)">Join Peer Groups</h1>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {% for field in form %}
+            <div>
+                <label class="block text-sm font-semibold mb-1" style="color: var(--ink)">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="text-xs mt-1" style="color: var(--ink-soft)">{{ field.help_text }}</p>{% endif %}
+                {% for error in field.errors %}<p class="text-xs mt-1" style="color: var(--clay)">{{ error }}</p>{% endfor %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary w-full justify-center">Create account</button>
+    </form>
+    <p class="text-sm mt-4" style="color: var(--ink-soft)">Already have an account? <a class="underline" href="{% url 'login' %}">Log in</a></p>
+</div>
+{% endblock %}

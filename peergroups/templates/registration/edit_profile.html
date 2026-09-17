@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Edit profile — Peer Groups{% endblock %}
+
+{% block content %}
+<div class="max-w-sm mx-auto card p-7">
+    <h1 class="font-display text-2xl font-semibold mb-5" style="color: var(--ink)">Edit profile</h1>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {% for field in form %}
+            <div>
+                <label class="block text-sm font-semibold mb-1" style="color: var(--ink)">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<p class="text-xs mt-1" style="color: var(--clay)">{{ error }}</p>{% endfor %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary w-full justify-center">Save changes</button>
+    </form>
+    <p class="text-sm mt-4" style="color: var(--ink-soft)"><a class="underline" href="{% url 'password_change' %}">Change password</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Peer Groups{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper: #FBFAF7;      /* page background, warm white */
+            --surface: #FFFFFF;    /* card background */
+            --ink: #16221C;        /* primary text, green-black */
+            --ink-soft: #4B564F;   /* secondary text */
+            --forest: #1F5C4A;     /* brand / primary actions */
+            --forest-dark: #163F33;
+            --gold: #D8A73D;       /* accent, used sparingly */
+            --clay: #B5482E;       /* private tag / destructive */
+            --mist: #E7E2D6;       /* borders, dividers */
+            --mist-soft: #F1EEE5;  /* soft fill surfaces */
+        }
+        * { -webkit-font-smoothing: antialiased; }
+        body { background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; }
+        .font-display { font-family: 'Fraunces', serif; }
+        .font-mono { font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.06em; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+               padding: 0.6rem 1.1rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
+               transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease; }
+        .btn-primary { background: var(--forest); color: #fff; }
+        .btn-primary:hover { background: var(--forest-dark); }
+        .btn-accent { background: var(--gold); color: var(--ink); }
+        .btn-accent:hover { background: #C7973A; }
+        .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--mist); }
+        .btn-outline:hover { border-color: var(--ink-soft); }
+        .btn-danger-outline { background: transparent; color: var(--clay); border: 1px solid var(--clay); }
+        .btn-danger-outline:hover { background: var(--clay); color: #fff; }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+        .btn:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+            outline: 2px solid var(--forest); outline-offset: 2px;
+        }
+
+        /* Surfaces */
+        .card { background: var(--surface); border: 1px solid var(--mist); border-radius: 14px; }
+        .badge { display: inline-flex; align-items: center; font-size: 0.72rem; font-weight: 600;
+                 padding: 0.2rem 0.6rem; border-radius: 999px; letter-spacing: 0.02em; }
+        .badge-forest { background: #E7F0EB; color: var(--forest-dark); }
+        .badge-clay { background: #F6E4DE; color: var(--clay); }
+        .badge-gold { background: #FBF1DC; color: #8A6A1F; }
+
+        /* Form fields */
+        input[type=text], input[type=email], input[type=password], input[type=file],
+        input[type=datetime-local], textarea, select {
+            width: 100%; padding: 0.6rem 0.8rem; border-radius: 8px;
+            border: 1px solid var(--mist); background: var(--surface);
+            font-family: 'Inter', sans-serif; color: var(--ink); font-size: 0.92rem;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none; border-color: var(--forest); box-shadow: 0 0 0 3px rgba(31,92,74,0.12);
+        }
+        ::placeholder { color: #9AA39C; }
+
+        /* Signature element: meetup ticket card */
+        .ticket { display: flex; overflow: hidden; }
+        .ticket-main { flex: 1; padding: 1.25rem 1.35rem; min-width: 0; }
+        .ticket-stub { width: 92px; flex-shrink: 0; background: var(--mist-soft);
+                       border-left: 1px dashed var(--mist); display: flex; flex-direction: column;
+                       align-items: center; justify-content: center; padding: 0.75rem 0.25rem; text-align: center; }
+        .ticket-stub .day { font-family: 'Fraunces', serif; font-size: 1.9rem; font-weight: 600; line-height: 1; color: var(--forest-dark); }
+        .ticket-stub .month { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--ink-soft); margin-top: 0.15rem; }
+        .ticket-stub .time { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--ink-soft); margin-top: 0.5rem; }
+        .ticket-stub::before, .ticket-stub::after {
+            content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--paper);
+        }
+
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="border-b" style="border-color: var(--mist)">
+        <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
+            <a href="{% url 'home' %}" class="font-display text-2xl font-semibold" style="color: var(--forest-dark)">
+                Peer Groups
+            </a>
+            <nav class="flex items-center gap-3 text-sm">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'create_group' %}" class="btn btn-primary btn-sm">Start a group</a>
+                    <a href="{% url 'edit_profile' %}" class="hidden sm:inline text-sm font-medium hover:opacity-70" style="color: var(--ink-soft)">{{ user.username }}</a>
+                    <form method="post" action="{% url 'logout' %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="text-sm font-medium hover:opacity-70" style="color: var(--ink-soft)">Log out</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-sm font-medium hover:opacity-70" style="color: var(--ink-soft)">Log in</a>
+                    <a href="{% url 'signup' %}" class="btn btn-primary btn-sm">Sign up</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-5 py-10 flex-1 w-full">
+        {% if messages %}
+            <div class="space-y-2 mb-6">
+                {% for message in messages %}
+                    <div class="px-4 py-2.5 rounded-lg border text-sm font-medium"
+                        style="{% if message.tags == 'error' %}border-color: var(--clay); background:#F6E4DE; color: var(--clay);{% else %}border-color: var(--forest); background:#E7F0EB; color: var(--forest-dark);{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t mt-10" style="border-color: var(--mist)">
+        <div class="max-w-6xl mx-auto px-5 py-8 flex flex-wrap items-center justify-between gap-4 text-sm" style="color: var(--ink-soft)">
+            <span class="font-display text-base" style="color: var(--forest-dark)">Peer Groups</span>
+            <span>Built by students, for students.</span>
+        </div>
+    </footer>
+</body>
+</html>

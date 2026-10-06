@@ -49,8 +49,8 @@ peergroups/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>/peergroups
+git clone https://github.com/SinghSudhanshu6/Peergroups.git
+cd Peergroups/peergroups
 
 # 2. Create and activate a virtual environment
 python -m venv .venv
@@ -103,7 +103,3 @@ Open **http://127.0.0.1:8000/** in your browser.
 ## 🤝 Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
